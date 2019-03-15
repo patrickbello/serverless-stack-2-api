@@ -22,6 +22,10 @@ custom:
   webpack:
     webpackConfig: ./webpack.config.js
     includeModules: true
+  # Load our secret environment variables based on the current stage.
+  # Fallback to default if it is not in prod.
+  environment: ${file(env.yml):${self:custom.stage}, file(env.yml):default}
+
 
 provider:
   name: aws
@@ -31,10 +35,12 @@ provider:
 
   # 'iamRoleStatement' defines the permission policy for the Lambda function.
   # In this case Lambda functions are granted with permissions to access DynamoDB.
-    # These environment variables are made available to our functions
+   # These environment variables are made available to our functions
   # under process.env.
   environment:
     tableName: ${self:custom.tableName}
+    stripeSecretKey: ${self:custom.environment.stripeSecretKey}
+
 
   iamRoleStatements:
     - Effect: Allow
@@ -114,6 +120,7 @@ functions:
           method: delete
           cors: true
           authorizer: aws_iam
+
   billing:
     handler: billing.main
     events:
